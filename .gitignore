@@ -10,9 +10,10 @@ app/build/
 # Local config
 local.properties
 
-# Gradle
+# Gradle wrapper artifacts
 gradle/
 !gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 
 # Logs
 *.log
