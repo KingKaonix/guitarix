@@ -29,10 +29,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -188,7 +184,7 @@ private fun HardwareNavBar(vm: MainViewModel) {
                     letterSpacing = 0.8.sp,
                     fontFamily = FontFamily.Monospace,
                     maxLines = 1,
-                    textAlign = Alignment.CenterHorizontally
+                    textAlign = TextAlign.Center
                 )
             }
         }

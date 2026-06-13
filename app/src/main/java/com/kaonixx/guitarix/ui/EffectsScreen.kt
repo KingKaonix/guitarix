@@ -3,7 +3,7 @@ package com.kaonixx.guitarix.ui
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
@@ -20,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -30,7 +29,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kaonixx.guitarix.MainViewModel
@@ -72,10 +70,6 @@ fun PresetRow(vm: MainViewModel) {
                 if (sel) Bg else TSecondary,
                 spring(Spring.DampingRatioMediumBouncy)
             )
-            val borderColor by animateColorAsState(
-                if (sel) Cyan.copy(alpha = 0.5f) else BorderOff,
-                spring(Spring.DampingRatioMediumBouncy)
-            )
             Button(
                 onClick = { vm.loadPreset(idx) },
                 modifier = Modifier.weight(1f).height(40.dp),
@@ -104,29 +98,18 @@ fun PresetRow(vm: MainViewModel) {
 @Composable
 fun EffectCards(vm: MainViewModel) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-        // Amp Sim (always on top - core effect)
         AmpSimCard(vm)
         Spacer(Modifier.height(10.dp))
-
-        // Distortion
         DistortionCard(vm)
         Spacer(Modifier.height(10.dp))
-
-        // EQ
         EQCard(vm)
         Spacer(Modifier.height(10.dp))
-
-        // Modulation
         ChorusCard(vm)
         Spacer(Modifier.height(10.dp))
-
-        // Dynamics
         NoiseGateCard(vm)
         Spacer(Modifier.height(10.dp))
         CompressorCard(vm)
         Spacer(Modifier.height(10.dp))
-
-        // Time-based
         DelayCard(vm)
         Spacer(Modifier.height(10.dp))
         ReverbCard(vm)
@@ -134,14 +117,11 @@ fun EffectCards(vm: MainViewModel) {
     }
 }
 
-// ── Individual Effect Cards ──
 @Composable
 private fun AmpSimCard(vm: MainViewModel) {
     EffectCard(
-        name = "AMP SIM",
-        enabled = vm.ampSimOn,
-        accent = KrankColors.AmpSim,
-        onToggle = { vm.toggleAmpSim() },
+        name = "AMP SIM", enabled = vm.ampSimOn,
+        accent = KrankColors.AmpSim, onToggle = { vm.toggleAmpSim() },
         knobs = listOf(
             KnobDef("DRIVE", vm.ampSimGain, { vm.updateAmpSimGain(it) }, "gain"),
             KnobDef("TONE", vm.ampSimTone, { vm.updateAmpSimTone(it) }, "tone"),
@@ -153,10 +133,8 @@ private fun AmpSimCard(vm: MainViewModel) {
 @Composable
 private fun DistortionCard(vm: MainViewModel) {
     EffectCard(
-        name = "DISTORTION",
-        enabled = vm.distortionOn,
-        accent = KrankColors.Distortion,
-        onToggle = { vm.toggleDistortion() },
+        name = "DISTORTION", enabled = vm.distortionOn,
+        accent = KrankColors.Distortion, onToggle = { vm.toggleDistortion() },
         knobs = listOf(
             KnobDef("DRIVE", vm.distortionDrive, { vm.updateDistortionDrive(it) }, "gain"),
             KnobDef("TONE", vm.distortionTone, { vm.updateDistortionTone(it) }, "tone"),
@@ -168,10 +146,8 @@ private fun DistortionCard(vm: MainViewModel) {
 @Composable
 private fun EQCard(vm: MainViewModel) {
     EffectCard(
-        name = "EQUALIZER",
-        enabled = vm.eqOn,
-        accent = KrankColors.EQ,
-        onToggle = { vm.toggleEQ() },
+        name = "EQUALIZER", enabled = vm.eqOn,
+        accent = KrankColors.EQ, onToggle = { vm.toggleEq() },
         knobs = listOf(
             KnobDef("BASS", vm.eqBass, { vm.updateEqBass(it) }, "eq"),
             KnobDef("MID", vm.eqMid, { vm.updateEqMid(it) }, "eq"),
@@ -183,10 +159,8 @@ private fun EQCard(vm: MainViewModel) {
 @Composable
 private fun ChorusCard(vm: MainViewModel) {
     EffectCard(
-        name = "CHORUS",
-        enabled = vm.chorusOn,
-        accent = KrankColors.Chorus,
-        onToggle = { vm.toggleChorus() },
+        name = "CHORUS", enabled = vm.chorusOn,
+        accent = KrankColors.Chorus, onToggle = { vm.toggleChorus() },
         knobs = listOf(
             KnobDef("RATE", vm.chorusRate, { vm.updateChorusRate(it) }, "rate"),
             KnobDef("DEPTH", vm.chorusDepth, { vm.updateChorusDepth(it) }, "depth"),
@@ -198,10 +172,8 @@ private fun ChorusCard(vm: MainViewModel) {
 @Composable
 private fun NoiseGateCard(vm: MainViewModel) {
     EffectCard(
-        name = "NOISE GATE",
-        enabled = vm.noiseGateOn,
-        accent = KrankColors.NoiseGate,
-        onToggle = { vm.toggleNoiseGate() },
+        name = "NOISE GATE", enabled = vm.noiseGateOn,
+        accent = KrankColors.NoiseGate, onToggle = { vm.toggleNoiseGate() },
         knobs = listOf(
             KnobDef("THRESH", vm.noiseGateThreshold, { vm.updateNoiseGateThreshold(it) }, "threshold"),
             KnobDef("ATTACK", vm.noiseGateAttack, { vm.updateNoiseGateAttack(it) }, "time"),
@@ -213,10 +185,8 @@ private fun NoiseGateCard(vm: MainViewModel) {
 @Composable
 private fun CompressorCard(vm: MainViewModel) {
     EffectCard(
-        name = "COMPRESSOR",
-        enabled = vm.compressorOn,
-        accent = KrankColors.Compressor,
-        onToggle = { vm.toggleCompressor() },
+        name = "COMPRESSOR", enabled = vm.compressorOn,
+        accent = KrankColors.Compressor, onToggle = { vm.toggleCompressor() },
         knobs = listOf(
             KnobDef("THRESH", vm.compressorThreshold, { vm.updateCompressorThreshold(it) }, "threshold"),
             KnobDef("RATIO", vm.compressorRatio, { vm.updateCompressorRatio(it) }, "ratio"),
@@ -229,10 +199,8 @@ private fun CompressorCard(vm: MainViewModel) {
 @Composable
 private fun DelayCard(vm: MainViewModel) {
     EffectCard(
-        name = "DELAY",
-        enabled = vm.delayOn,
-        accent = KrankColors.Delay,
-        onToggle = { vm.toggleDelay() },
+        name = "DELAY", enabled = vm.delayOn,
+        accent = KrankColors.Delay, onToggle = { vm.toggleDelay() },
         knobs = listOf(
             KnobDef("MIX", vm.delayMix, { vm.updateDelayMix(it) }, "mix"),
             KnobDef("FEEDBK", vm.delayFeedback, { vm.updateDelayFeedback(it) }, "feedback"),
@@ -244,10 +212,8 @@ private fun DelayCard(vm: MainViewModel) {
 @Composable
 private fun ReverbCard(vm: MainViewModel) {
     EffectCard(
-        name = "REVERB",
-        enabled = vm.reverbOn,
-        accent = KrankColors.Reverb,
-        onToggle = { vm.toggleReverb() },
+        name = "REVERB", enabled = vm.reverbOn,
+        accent = KrankColors.Reverb, onToggle = { vm.toggleReverb() },
         knobs = listOf(
             KnobDef("SIZE", vm.reverbRoomSize, { vm.updateReverbRoomSize(it) }, "size"),
             KnobDef("MIX", vm.reverbMix, { vm.updateReverbMix(it) }, "mix")
@@ -264,17 +230,12 @@ private fun EffectCard(
     onToggle: () -> Unit,
     knobs: List<KnobDef>
 ) {
-    val accentAlpha = if (enabled) accent else TMuted
     val cardBg by animateColorAsState(
         if (enabled) S1 else S0,
         spring(Spring.DampingRatioMediumBouncy)
     )
     val borderColor by animateColorAsState(
         if (enabled) BorderOn else BorderOff,
-        spring(Spring.DampingRatioMediumBouncy)
-    )
-    val glowAlpha by animateFloatAsState(
-        if (enabled) 0.5f else 0f,
         spring(Spring.DampingRatioMediumBouncy)
     )
 
@@ -301,7 +262,6 @@ private fun EffectCard(
                 .clip(RoundedCornerShape(14.dp))
                 .background(cardBg)
         ) {
-            // Glow border when enabled
             if (enabled) {
                 Box(
                     modifier = Modifier
@@ -316,22 +276,20 @@ private fun EffectCard(
                     .padding(12.dp)
             ) {
                 Column {
-                    // Header
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Hardware indicator LED
                             Box(
                                 modifier = Modifier
                                     .size(10.dp)
                                     .clip(CircleShape)
-                                    .background(accentAlpha.copy(alpha = if (enabled) 0.9f else 0.3f))
+                                    .background(if (enabled) accent.copy(alpha = 0.9f) else TMuted.copy(alpha = 0.3f))
                                     .border(
                                         0.5.dp,
-                                        if (enabled) accentAlpha.copy(alpha = 0.5f) else Color.Transparent,
+                                        if (enabled) accent.copy(alpha = 0.5f) else Color.Transparent,
                                         CircleShape
                                     )
                             )
@@ -350,7 +308,7 @@ private fun EffectCard(
                                 if (enabled) "ON" else "OFF",
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (enabled) accentAlpha else TMuted,
+                                color = if (enabled) accent else TMuted,
                                 letterSpacing = 1.sp,
                                 fontFamily = FontFamily.Monospace
                             )
@@ -369,7 +327,6 @@ private fun EffectCard(
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    // Knobs
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -384,11 +341,8 @@ private fun EffectCard(
                                 knobType = knob.type
                             )
                         }
-                        // Fill remaining space if only 2 knobs
                         if (knobs.size == 2) {
                             Spacer(Modifier.width(72.dp))
-                        } else if (knobs.size == 4) {
-                            // 4 knobs fill the space naturally
                         }
                     }
                 }
@@ -447,7 +401,6 @@ private fun HardwareKnob(
                 val sa = 135f
                 val sw = 270f
 
-                // Background arc
                 drawArc(
                     Disabled, sa, sw, false,
                     Offset(stroke / 2, stroke / 2),
@@ -455,7 +408,6 @@ private fun HardwareKnob(
                     style = Stroke(stroke, cap = StrokeCap.Round)
                 )
 
-                // Active arc with hardware gradient feel
                 val activeColor = if (enabled) accent else Disabled
                 drawArc(
                     activeColor, sa, sw * value, false,
@@ -464,7 +416,6 @@ private fun HardwareKnob(
                     style = Stroke(stroke, cap = StrokeCap.Round)
                 )
 
-                // Needle
                 val ang = (sa + sw * value) * PI / 180f
                 val inner = r * 0.55f
                 val outer = r * 0.9f
@@ -477,14 +428,12 @@ private fun HardwareKnob(
                     cap = StrokeCap.Round
                 )
 
-                // Center dot
                 drawCircle(
                     if (enabled) accent.copy(alpha = 0.8f) else Disabled,
                     radius = 3.5.dp.toPx(),
                     center = c
                 )
 
-                // Tick marks
                 for (i in 0..10) {
                     val ta = (sa + sw * (i / 10f)) * PI / 180f
                     val tickInner = r * 0.7f
@@ -520,15 +469,6 @@ private fun HardwareKnob(
     }
 }
 
-@Composable
-private fun animateFloatAsState(targetValue: Float, animationSpec: Spring<Float>): State<Float> {
-    return androidx.compose.runtime.animateFloatAsState(
-        targetValue = targetValue,
-        animationSpec = animationSpec
-    )
-}
-
-// ── Knob Definition ──
 data class KnobDef(
     val label: String,
     val value: Float,
