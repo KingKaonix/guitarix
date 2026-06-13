@@ -1,8 +1,14 @@
 package com.kaonixx.guitarix.ui
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -100,10 +106,10 @@ private fun NavBar(vm: MainViewModel) {
                 icon = {
                     Icon(
                         imageVector = when (index) {
-                            0 -> androidx.compose.material.icons.filled.Tune
-                            1 -> androidx.compose.material.icons.filled.MusicNote
-                            2 -> androidx.compose.material.icons.filled.Analytics
-                            else -> androidx.compose.material.icons.filled.Circle
+                            0 -> Icons.Filled.Settings
+                            1 -> Icons.Filled.Search
+                            2 -> Icons.Filled.Star
+                            else -> Icons.Filled.Star
                         },
                         contentDescription = label
                     )
