@@ -20,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import com.kaonixx.guitarix.MainViewModel
 import com.kaonixx.guitarix.WavLoader
+import com.kaonixx.guitarix.ui.effectColor as getEffectColor
 
 // Data class for tone recommendations
 data class ToneRecommendation(val effectName: String, val value: Float, val paramName: String)
@@ -319,9 +320,6 @@ private fun RecommendationCard(effectName: String, paramName: String, value: Flo
         }
     }
 }
-
-// Effect colors now from Theme.kt
-import com.kaonixx.guitarix.ui.effectColor as getEffectColor
 
 // ── Instructions ──
 @Composable
