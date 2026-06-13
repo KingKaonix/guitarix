@@ -9,9 +9,9 @@ class GuitarEngine {
         const val FX_AMP_SIM    = 1
         const val FX_EQ         = 2
         const val FX_CHORUS     = 3
-        const val FX_DELAY      = 4
-        const val FX_NOISE_GATE = 5
-        const val FX_COMPRESSOR = 6
+        const val FX_NOISE_GATE = 4
+        const val FX_COMPRESSOR = 5
+        const val FX_DELAY      = 6
         const val FX_REVERB     = 7
         const val FX_TUNER      = 8
         const val FX_TONE_MATCHER = 9

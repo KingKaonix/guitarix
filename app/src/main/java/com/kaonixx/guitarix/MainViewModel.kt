@@ -2,8 +2,6 @@ package com.kaonixx.guitarix
 
 import android.app.Application
 
-// Data class for tablature notes from transcription
-data class TabNoteData(val stringNum: Int, val fret: Int, val startTime: Float, val duration: Float)
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -25,6 +23,8 @@ import com.kaonixx.guitarix.GuitarEngine.Companion.FX_NOISE_GATE
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_COMPRESSOR
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_TONE_MATCHER
 
+// Data class for tablature notes from transcription
+data class TabNoteData(val stringNum: Int, val fret: Int, val startTime: Float, val duration: Float)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val engine = GuitarEngine()
