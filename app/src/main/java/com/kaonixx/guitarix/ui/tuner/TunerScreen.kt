@@ -68,11 +68,11 @@ private fun TunerDisplay(vm: MainViewModel) {
             .border(2.dp, Color(0xFF2A2A3A), RoundedCornerShape(20.dp)), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (vm.isTunerNoteDetected) {
-                    Text("${vm.tunerNoteIndex}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22D3EE))
-                    Text(vm.engine.getTunerNoteName(vm.tunerNoteIndex), fontSize = 18.sp, fontWeight = FontWeight.Medium, color = Color(0xFFF1F1F5))
-                    Text("${vm.tunerOctave}", fontSize = 16.sp, color = Color(0xFF8888A0))
+                    val noteName = if (vm.tunerNoteIndex >= 0) vm.engine.getTunerNoteName(vm.tunerNoteIndex) else "?"
+                    Text(noteName, fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22D3EE))
+                    Text("Octave ${vm.tunerOctave}", fontSize = 16.sp, color = Color(0xFF8888A0))
                 } else {
-                    Text("--", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF8888A0))
+                    Text("--", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color(0xFF8888A0))
                     Text("NO SIGNAL", fontSize = 16.sp, color = Color(0xFF8888A0))
                 }
                 Spacer(Modifier.height(10.dp))

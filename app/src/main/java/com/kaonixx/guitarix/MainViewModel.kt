@@ -1,6 +1,11 @@
 package com.kaonixx.guitarix
 
 import android.app.Application
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -18,6 +23,7 @@ import com.kaonixx.guitarix.GuitarEngine.Companion.FX_TONE_MATCHER
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val engine = GuitarEngine()
+    private var tunerPollJob: Job? = null
 
     // --- Observed state ---
     var isRunning by mutableStateOf(false); private set
@@ -95,8 +101,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun toggleEngine() {
-        if (isRunning) { engine.stop(); isRunning = false }
-        else { isRunning = engine.start() }
+        if (isRunning) {
+            engine.stop()
+            isRunning = false
+            stopTunerPolling()
+        } else {
+            isRunning = engine.start()
+            if (isRunning) startTunerPolling()
+        }
+    }
+
+    private fun startTunerPolling() {
+        tunerPollJob = viewModelScope.launch {
+            while (isActive) {
+                updateTunerState()
+                delay(50)
+            }
+        }
+    }
+
+    private fun stopTunerPolling() {
+        tunerPollJob?.cancel()
+        tunerPollJob = null
     }
 
     fun toggleAmpSim() {
@@ -223,6 +249,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
+        stopTunerPolling()
         if (isRunning) engine.stop()
         super.onCleared()
     }
