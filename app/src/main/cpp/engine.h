@@ -38,6 +38,14 @@ public:
     const char* getTunerCurrentTuningName() const;
     const char* getTunerNoteName(int index) const;
 
+    // Recording
+    bool startRecording(const char* path);
+    void stopRecording();
+    bool isRecording() const { return recording_; }
+
+    // Impulse response loader (cab simulation)
+    bool loadImpulseResponse(const char* path);
+
     // Tone matcher interface
     void loadAudioForToneMatcher(const float* data, int32_t numFrames, int32_t numChannels);
     bool hasToneMatcherProfile() const;
@@ -72,6 +80,16 @@ public:
 
 private:
     std::shared_ptr<oboe::AudioStream> inputStream_;
+    // Recording state
+    FILE* recordingFile_ = nullptr;
+    bool recording_ = false;
+    int recordingSampleRate_ = 48000;
+
+    // Convolution reverb / IR
+    std::vector<float> irData_;
+    std::vector<float> convBuffer_;
+    int irLength_ = 0;
+    bool irLoaded_ = false;
     std::shared_ptr<oboe::AudioStream> outputStream_;
     std::vector<float> ringBuffer_;
     int ringBufferWritePos_ = 0;

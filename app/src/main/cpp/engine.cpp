@@ -5,20 +5,94 @@
 #include "effects/eq.h"
 #include "effects/ampsim.h"
 #include "effects/chorus.h"
+#include "effects/noise_gate.h"
+#include "effects/compressor.h"
 #include <oboe/Oboe.h>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <android/log.h>
+#include <cstdio>
 
 #define LOG_TAG "GuitarixEngine"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+
+// WAV file writing helper
+static bool writeWavHeader(FILE* f, int sampleRate, int numChannels, int bitsPerSample) {
+    int dataSize = 0;
+    int fileSize = 36 + dataSize;
+    fwrite("RIFF", 1, 4, f);
+    fwrite(&fileSize, 4, 1, f);
+    fwrite("WAVE", 1, 4, f);
+    fwrite("fmt ", 1, 4, f);
+    int fmtSize = 16;
+    short audioFmt = 3; // IEEE float
+    short ch = (short)numChannels;
+    int sr = sampleRate;
+    short bps = (short)(numChannels * bitsPerSample / 8);
+    int br = sr * bps;
+    short ba = (short)(numChannels * bitsPerSample / 8);
+    fwrite(&fmtSize, 4, 1, f);
+    fwrite(&audioFmt, 2, 1, f);
+    fwrite(&ch, 2, 1, f);
+    fwrite(&sr, 4, 1, f);
+    fwrite(&br, 4, 1, f);
+    fwrite(&ba, 2, 1, f);
+    fwrite(&bps, 2, 1, f);
+    fwrite("data", 1, 4, f);
+    fwrite(&dataSize, 4, 1, f);
+    fflush(f);
+    return true;
+}
+
+static bool finalizeWav(FILE* f) {
+    if (!f) return false;
+    int fileSize = (int)ftell(f);
+    fseek(f, 4, SEEK_SET);
+    int dataSize = fileSize - 44;
+    int totalSize = fileSize - 8;
+    fwrite(&totalSize, 4, 1, f);
+    fseek(f, 40, SEEK_SET);
+    fwrite(&dataSize, 4, 1, f);
+    fclose(f);
+    return true;
+}
+
+// Simple convolution for IR
+static void applyConvolution(float* buffer, int numFrames, const float* ir, int irLen,
+                              std::vector<float>& convBuf) {
+    if (irLen == 0) return;
+    int convLen = numFrames + irLen - 1;
+    if ((int)convBuf.size() < convLen) convBuf.resize(convLen, 0.0f);
+    // Convolve
+    for (int n = 0; n < numFrames; ++n) {
+        for (int k = 0; k < irLen; ++k) {
+            convBuf[n + k] += buffer[n] * ir[k];
+        }
+    }
+    // Copy output (first numFrames samples)
+    for (int n = 0; n < numFrames && n < (int)convBuf.size(); ++n) {
+        buffer[n] = convBuf[n];
+    }
+    // Shift remaining for next callback
+    int remaining = convLen - numFrames;
+    if (remaining > 0) {
+        for (int i = 0; i < remaining; ++i) {
+            convBuf[i] = convBuf[numFrames + i];
+        }
+        convBuf.resize(remaining);
+    } else {
+        convBuf.clear();
+    }
+}
 
 enum EffectIndex {
     FX_DISTORTION = 0,
     FX_AMP_SIM,
     FX_EQ,
     FX_CHORUS,
+    FX_NOISE_GATE,
+    FX_COMPRESSOR,
     FX_DELAY,
     FX_REVERB,
     FX_COUNT
@@ -46,6 +120,8 @@ void AudioEngine::initEffects() {
     effects_[FX_DELAY]      = std::make_unique<Delay>();
     effects_[FX_REVERB]     = std::make_unique<Reverb>();
 
+    enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
     enabled_[FX_AMP_SIM] = true;
 }
 
@@ -151,6 +227,16 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
     // Process effects chain on output
     buildSignalChain(buffer, numFrames, numChannels);
 
+    // Apply IR convolution if loaded
+    if (irLoaded_ && irLength_ > 0) {
+        applyConvolution(buffer, numFrames, irData_.data(), irLength_, convBuffer_);
+    }
+
+    // Record if active
+    if (recording_ && recordingFile_) {
+        fwrite(buffer, sizeof(float), numFrames * numChannels, recordingFile_);
+    }
+
     return oboe::DataCallbackResult::Continue;
 }
 
@@ -219,7 +305,9 @@ void AudioEngine::loadPreset(int preset) {
     switch (preset) {
         case 0: // Clean
             enabled_[FX_DISTORTION] = false;
-            enabled_[FX_AMP_SIM] = true;
+            enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
+    enabled_[FX_AMP_SIM] = true;
             enabled_[FX_EQ] = false;
             enabled_[FX_CHORUS] = false;
             enabled_[FX_DELAY] = true;
@@ -234,7 +322,9 @@ void AudioEngine::loadPreset(int preset) {
             break;
         case 1: // Crunch
             enabled_[FX_DISTORTION] = true;
-            enabled_[FX_AMP_SIM] = true;
+            enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
+    enabled_[FX_AMP_SIM] = true;
             enabled_[FX_EQ] = true;
             enabled_[FX_CHORUS] = false;
             enabled_[FX_DELAY] = false;
@@ -253,7 +343,9 @@ void AudioEngine::loadPreset(int preset) {
             break;
         case 2: // Lead
             enabled_[FX_DISTORTION] = true;
-            enabled_[FX_AMP_SIM] = true;
+            enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
+    enabled_[FX_AMP_SIM] = true;
             enabled_[FX_EQ] = true;
             enabled_[FX_CHORUS] = false;
             enabled_[FX_DELAY] = true;
@@ -274,11 +366,20 @@ void AudioEngine::loadPreset(int preset) {
             break;
         case 3: // Metal
             enabled_[FX_DISTORTION] = true;
-            enabled_[FX_AMP_SIM] = true;
+            enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
+    enabled_[FX_AMP_SIM] = true;
             enabled_[FX_EQ] = true;
             enabled_[FX_CHORUS] = false;
             enabled_[FX_DELAY] = false;
             enabled_[FX_REVERB] = false;
+            effects_[FX_NOISE_GATE]->setParameter(0, 0.75f);
+            effects_[FX_NOISE_GATE]->setParameter(1, 0.5f);
+            effects_[FX_NOISE_GATE]->setParameter(2, 0.5f);
+            effects_[FX_COMPRESSOR]->setParameter(0, 0.67f);
+            effects_[FX_COMPRESSOR]->setParameter(1, 0.16f);
+            effects_[FX_COMPRESSOR]->setParameter(2, 0.5f);
+            effects_[FX_COMPRESSOR]->setParameter(3, 0.5f);
             effects_[FX_DISTORTION]->setParameter(0, 0.95f);
             effects_[FX_DISTORTION]->setParameter(1, 0.4f);
             effects_[FX_DISTORTION]->setParameter(2, 0.9f);
@@ -290,7 +391,9 @@ void AudioEngine::loadPreset(int preset) {
             break;
         case 4: // Ambient
             enabled_[FX_DISTORTION] = false;
-            enabled_[FX_AMP_SIM] = true;
+            enabled_[FX_NOISE_GATE] = true;
+    enabled_[FX_COMPRESSOR] = true;
+    enabled_[FX_AMP_SIM] = true;
             enabled_[FX_EQ] = true;
             enabled_[FX_CHORUS] = true;
             enabled_[FX_DELAY] = true;
@@ -310,6 +413,45 @@ void AudioEngine::loadPreset(int preset) {
             effects_[FX_EQ]->setParameter(2, 0.6f);
             break;
     }
+}
+
+// Recording implementation
+bool AudioEngine::startRecording(const char* path) {
+    if (recording_) return false;
+    recordingFile_ = fopen(path, "wb");
+    if (!recordingFile_) return false;
+    writeWavHeader(recordingFile_, recordingSampleRate_, 1, 32);
+    recording_ = true;
+    LOGI("Recording started: %s", path);
+    return true;
+}
+
+void AudioEngine::stopRecording() {
+    if (!recording_) return;
+    recording_ = false;
+    if (recordingFile_) {
+        finalizeWav(recordingFile_);
+        recordingFile_ = nullptr;
+    }
+    LOGI("Recording stopped");
+}
+
+bool AudioEngine::loadImpulseResponse(const char* path) {
+    FILE* f = fopen(path, "rb");
+    if (!f) { irLoaded_ = false; return false; }
+    char riff[4]; fread(riff, 1, 4, f); if (riff[0]!='R'||riff[1]!='I'||riff[2]!='F'||riff[3]!='F') { fclose(f); return false; }
+    fseek(f, 40, SEEK_SET); // Go to data chunk size
+    int dataSize; fread(&dataSize, 4, 1, f);
+    int numSamples = dataSize / 4; // Assuming 32-bit float
+    std::vector<float> temp(numSamples);
+    fread(temp.data(), 4, numSamples, f);
+    fclose(f);
+    irData_ = std::move(temp);
+    irLength_ = (int)irData_.size();
+    irLoaded_ = true;
+    convBuffer_.clear();
+    LOGI("IR loaded: %d samples", irLength_);
+    return true;
 }
 
 // Tuner interface implementations

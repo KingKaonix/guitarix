@@ -10,9 +10,11 @@ class GuitarEngine {
         const val FX_EQ         = 2
         const val FX_CHORUS     = 3
         const val FX_DELAY      = 4
-        const val FX_REVERB     = 5
-        const val FX_TUNER      = 6
-        const val FX_TONE_MATCHER = 7
+        const val FX_NOISE_GATE = 5
+        const val FX_COMPRESSOR = 6
+        const val FX_REVERB     = 7
+        const val FX_TUNER      = 8
+        const val FX_TONE_MATCHER = 9
 
         // Distortion params
         const val PARAM_DRIVE = 0
@@ -29,6 +31,17 @@ class GuitarEngine {
         const val PARAM_MID    = 1
         const val PARAM_TREBLE = 2
 
+        // Noise Gate params
+        const val PARAM_THRESHOLD2 = 0
+        const val PARAM_ATTACK2 = 1
+        const val PARAM_RELEASE2 = 2
+
+        // Compressor params
+        const val PARAM_THRESHOLD3 = 0
+        const val PARAM_RATIO = 1
+        const val PARAM_ATTACK3 = 2
+        const val PARAM_RELEASE3 = 3
+
         // Chorus params
         const val PARAM_RATE  = 0
         const val PARAM_DEPTH = 1
@@ -43,7 +56,7 @@ class GuitarEngine {
         const val PARAM_ROOM_SIZE = 0
         const val PARAM_MIX3      = 1
 
-        val effectNames = listOf("Distortion", "Amp Sim", "EQ", "Chorus", "Delay", "Reverb", "Tuner", "Tone Matcher")
+        val effectNames = listOf("Distortion", "Amp Sim", "EQ", "Chorus", "Noise Gate", "Compressor", "Delay", "Reverb", "Tuner", "Tone Matcher")
         val presetNames = listOf("Clean", "Crunch", "Lead", "Metal", "Ambient")
     }
 
@@ -69,6 +82,12 @@ class GuitarEngine {
         nativeGetEffectParameter(nativePtr, index, paramId)
 
     fun loadPreset(preset: Int) = nativeLoadPreset(nativePtr, preset)
+
+    // Recording
+    fun startRecording(filePath: String) = nativeStartRecording(nativePtr, filePath)
+    fun stopRecording() = nativeStopRecording(nativePtr)
+    fun isRecording(): Boolean = nativeIsRecording(nativePtr)
+    fun loadImpulseResponse(path: String): Boolean = nativeLoadImpulseResponse(nativePtr, path)
 
     // Tuner operations
     fun loadAudioForTuner(data: FloatArray, numFrames: Int, numChannels: Int) =
@@ -112,6 +131,12 @@ class GuitarEngine {
     private external fun nativeSetEffectParameter(ptr: Long, index: Int, paramId: Int, value: Float)
     private external fun nativeGetEffectParameter(ptr: Long, index: Int, paramId: Int): Float
     private external fun nativeLoadPreset(ptr: Long, preset: Int)
+
+    // Recording and IR
+    private external fun nativeStartRecording(ptr: Long, filePath: String)
+    private external fun nativeStopRecording(ptr: Long)
+    private external fun nativeIsRecording(ptr: Long): Boolean
+    private external fun nativeLoadImpulseResponse(ptr: Long, path: String): Boolean
 
     // Tuner JNI methods
     private external fun nativeLoadAudioForTuner(ptr: Long, data: FloatArray, numFrames: Int, numChannels: Int)

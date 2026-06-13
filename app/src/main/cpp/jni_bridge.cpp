@@ -255,4 +255,38 @@ Java_com_kaonixx_guitarix_GuitarEngine_nativeGetRecommendedReverbMix(JNIEnv*, jo
     return engine ? engine->getRecommendedReverbMix() : 0.2f;
 }
 
+// Recording JNI
+JNIEXPORT void JNICALL
+Java_com_kaonixx_guitarix_GuitarEngine_nativeStartRecording(JNIEnv* env, jobject,
+    jlong ptr, jstring filePath) {
+    auto* engine = getEngine(ptr);
+    if (!engine) return;
+    const char* path = env->GetStringUTFChars(filePath, nullptr);
+    engine->startRecording(path);
+    env->ReleaseStringUTFChars(filePath, path);
+}
+
+JNIEXPORT void JNICALL
+Java_com_kaonixx_guitarix_GuitarEngine_nativeStopRecording(JNIEnv*, jobject, jlong ptr) {
+    auto* engine = getEngine(ptr);
+    if (engine) engine->stopRecording();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_kaonixx_guitarix_GuitarEngine_nativeIsRecording(JNIEnv*, jobject, jlong ptr) {
+    auto* engine = getEngine(ptr);
+    return engine ? (engine->isRecording() ? JNI_TRUE : JNI_FALSE) : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_kaonixx_guitarix_GuitarEngine_nativeLoadImpulseResponse(JNIEnv* env, jobject,
+    jlong ptr, jstring path) {
+    auto* engine = getEngine(ptr);
+    if (!engine) return JNI_FALSE;
+    const char* cpath = env->GetStringUTFChars(path, nullptr);
+    bool result = engine->loadImpulseResponse(cpath);
+    env->ReleaseStringUTFChars(path, cpath);
+    return result ? JNI_TRUE : JNI_FALSE;
+}
+
 }  // extern "C"

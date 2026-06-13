@@ -83,6 +83,23 @@ fun EffectCards(vm: MainViewModel) {
             Spacer(Modifier.height(10.dp))
         }
         // Amp Sim (visible by default when tab is active)
+        if (vm.noiseGateOn) {
+            CardPremium("Noise Gate", true, { vm.toggleNoiseGate() }, listOf(
+                Knob("Threshold", vm.noiseGateThreshold, { vm.updateNoiseGateThreshold(it) }),
+                Knob("Attack", vm.noiseGateAttack, { vm.updateNoiseGateAttack(it) }),
+                Knob("Release", vm.noiseGateRelease, { vm.updateNoiseGateRelease(it) })
+            ))
+            Spacer(Modifier.height(10.dp))
+        }
+        if (vm.compressorOn) {
+            CardPremium("Compressor", true, { vm.toggleCompressor() }, listOf(
+                Knob("Threshold", vm.compressorThreshold, { vm.updateCompressorThreshold(it) }),
+                Knob("Ratio", vm.compressorRatio, { vm.updateCompressorRatio(it) }),
+                Knob("Attack", vm.compressorAttack, { vm.updateCompressorAttack(it) }),
+                Knob("Release", vm.compressorRelease, { vm.updateCompressorRelease(it) })
+            ))
+            Spacer(Modifier.height(10.dp))
+        }
         if (vm.ampSimOn) {
             CardPremium("Amp Sim", true, { vm.toggleAmpSim() }, listOf(
                 Knob("Gain", vm.ampSimGain, { vm.updateAmpSimGain(it) }),
@@ -91,7 +108,15 @@ fun EffectCards(vm: MainViewModel) {
             ))
             Spacer(Modifier.height(10.dp))
         }
-        // Additional effects would go here
+        // Additional effects
+        if (vm.eqOn) {
+            CardPremium("EQ", true, { vm.toggleEq() }, listOf(
+                Knob("Bass", vm.eqBass, { vm.updateEqBass(it) }),
+                Knob("Mid", vm.eqMid, { vm.updateEqMid(it) }),
+                Knob("Treble", vm.eqTreble, { vm.updateEqTreble(it) })
+            ))
+            Spacer(Modifier.height(10.dp))
+        }
     }
 }
 

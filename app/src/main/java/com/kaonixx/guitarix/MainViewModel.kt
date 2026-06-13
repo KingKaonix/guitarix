@@ -18,6 +18,8 @@ import com.kaonixx.guitarix.GuitarEngine.Companion.FX_DELAY
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_DISTORTION
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_EQ
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_REVERB
+import com.kaonixx.guitarix.GuitarEngine.Companion.FX_NOISE_GATE
+import com.kaonixx.guitarix.GuitarEngine.Companion.FX_COMPRESSOR
 import com.kaonixx.guitarix.GuitarEngine.Companion.FX_TONE_MATCHER
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -35,6 +37,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // Per-effect enable state
     var distortionOn by mutableStateOf(false); private set
     var ampSimOn by mutableStateOf(true); private set
+    var noiseGateOn by mutableStateOf(true); private set
+    var compressorOn by mutableStateOf(true); private set
     var eqOn by mutableStateOf(false); private set
     var chorusOn by mutableStateOf(false); private set
     var delayOn by mutableStateOf(true); private set
@@ -48,6 +52,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var ampSimGain by mutableFloatStateOf(0.5f); private set
     var ampSimTone by mutableFloatStateOf(0.5f); private set
     var ampSimMaster by mutableFloatStateOf(0.7f); private set
+
+    // Noise Gate params
+    var noiseGateThreshold by mutableFloatStateOf(0.75f); private set  // -60dB default (maps to -60 + 0.75*80 = 0dB)
+    var noiseGateAttack by mutableFloatStateOf(0.5f); private set
+    var noiseGateRelease by mutableFloatStateOf(0.5f); private set
+
+    // Compressor params
+    var compressorThreshold by mutableFloatStateOf(0.67f); private set  // -20dB default
+    var compressorRatio by mutableFloatStateOf(0.16f); private set       // 4:1 default
+    var compressorAttack by mutableFloatStateOf(0.5f); private set
+    var compressorRelease by mutableFloatStateOf(0.5f); private set
 
     var eqBass by mutableFloatStateOf(0.5f); private set
     var eqMid by mutableFloatStateOf(0.5f); private set
@@ -140,6 +155,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         engine.setEffectEnabled(FX_REVERB, reverbOn)
     }
 
+    fun toggleNoiseGate() {
+        noiseGateOn = !noiseGateOn
+        engine.setEffectEnabled(FX_NOISE_GATE, noiseGateOn)
+    }
+
+    fun toggleCompressor() {
+        compressorOn = !compressorOn
+        engine.setEffectEnabled(FX_COMPRESSOR, compressorOn)
+    }
+
+    fun toggleEq() {
+        eqOn = !eqOn
+        engine.setEffectEnabled(FX_EQ, eqOn)
+    }
+
+    fun toggleDistortion() {
+        distortionOn = !distortionOn
+        engine.setEffectEnabled(FX_DISTORTION, distortionOn)
+    }
+
+    fun toggleChorus() {
+        chorusOn = !chorusOn
+        engine.setEffectEnabled(FX_CHORUS, chorusOn)
+    }
+
     fun setTab(tab: Int) { currentTab = tab }
 
     fun loadPreset(index: Int) {
@@ -187,6 +227,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun updateAmpSimGain(v: Float) { ampSimGain = v; engine.setEffectParameter(FX_AMP_SIM, GuitarEngine.PARAM_GAIN, v) }
     fun updateAmpSimTone(v: Float) { ampSimTone = v; engine.setEffectParameter(FX_AMP_SIM, GuitarEngine.PARAM_TONE2, v) }
     fun updateAmpSimMaster(v: Float) { ampSimMaster = v; engine.setEffectParameter(FX_AMP_SIM, GuitarEngine.PARAM_MASTER, v) }
+
+    fun updateNoiseGateThreshold(v: Float) { noiseGateThreshold = v; engine.setEffectParameter(FX_NOISE_GATE, GuitarEngine.PARAM_THRESHOLD2, v) }
+    fun updateNoiseGateAttack(v: Float) { noiseGateAttack = v; engine.setEffectParameter(FX_NOISE_GATE, GuitarEngine.PARAM_ATTACK2, v) }
+    fun updateNoiseGateRelease(v: Float) { noiseGateRelease = v; engine.setEffectParameter(FX_NOISE_GATE, GuitarEngine.PARAM_RELEASE2, v) }
+
+    fun updateCompressorThreshold(v: Float) { compressorThreshold = v; engine.setEffectParameter(FX_COMPRESSOR, GuitarEngine.PARAM_THRESHOLD3, v) }
+    fun updateCompressorRatio(v: Float) { compressorRatio = v; engine.setEffectParameter(FX_COMPRESSOR, GuitarEngine.PARAM_RATIO, v) }
+    fun updateCompressorAttack(v: Float) { compressorAttack = v; engine.setEffectParameter(FX_COMPRESSOR, GuitarEngine.PARAM_ATTACK3, v) }
+    fun updateCompressorRelease(v: Float) { compressorRelease = v; engine.setEffectParameter(FX_COMPRESSOR, GuitarEngine.PARAM_RELEASE3, v) }
 
     fun updateEqBass(v: Float) { eqBass = v; engine.setEffectParameter(FX_EQ, GuitarEngine.PARAM_BASS, v) }
     fun updateEqMid(v: Float) { eqMid = v; engine.setEffectParameter(FX_EQ, GuitarEngine.PARAM_MID, v) }
