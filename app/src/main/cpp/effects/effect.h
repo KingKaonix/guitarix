@@ -10,6 +10,7 @@ public:
     virtual void setParameter(int id, float value) = 0;
     virtual float getParameter(int id) = 0;
     virtual void reset() = 0;
+    virtual int getParameterCount() const { return 0; }
 };
 
 #endif
