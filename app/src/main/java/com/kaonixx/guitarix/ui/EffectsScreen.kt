@@ -129,7 +129,7 @@ fun CardPremium(name: String, enabled: Boolean, onToggle: () -> Unit, knobs: Lis
                 }
                 Spacer(Modifier.height(14.dp))
                 Row(Modifier.fillMaxWidth(), Arrangement.SpaceEvenly) {
-                    knobs.forEach { knob -> KnobView(knob.label, knob.value(), knob.set, enabled) }
+                    knobs.forEach { knob -> KnobView(knob.label, knob.value, knob.onChange, enabled) }
                     if (knobs.size == 2) Spacer(Modifier.width(72.dp))
                 }
             }

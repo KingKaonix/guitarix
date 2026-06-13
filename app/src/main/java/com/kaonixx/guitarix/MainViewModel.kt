@@ -99,6 +99,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         else { isRunning = engine.start() }
     }
 
+    fun toggleAmpSim() {
+        ampSimOn = !ampSimOn
+        engine.setEffectEnabled(FX_AMP_SIM, ampSimOn)
+    }
+
+    fun toggleDelay() {
+        delayOn = !delayOn
+        engine.setEffectEnabled(FX_DELAY, delayOn)
+    }
+
+    fun toggleReverb() {
+        reverbOn = !reverbOn
+        engine.setEffectEnabled(FX_REVERB, reverbOn)
+    }
+
     fun setTab(tab: Int) { currentTab = tab }
 
     fun loadPreset(index: Int) {

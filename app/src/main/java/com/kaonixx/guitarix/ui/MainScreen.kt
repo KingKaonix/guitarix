@@ -1,5 +1,7 @@
 package com.kaonixx.guitarix.ui
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -50,6 +52,7 @@ private val TSecondary  = Color(0xFF8888A0)
 private val TMuted      = Color(0xFF555570)
 private val Disabled    = Color(0xFF2E2E3A)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(vm: MainViewModel) {
     val navController = rememberNavController()
