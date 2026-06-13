@@ -45,12 +45,12 @@ object WavLoader {
                 "fmt " -> {
                     readString(stream, 4)         // consume "fmt "
                     val fmtSize = readIntLE(stream)
-                    val audioFormat = readShortLE(stream)
-                    numChannels = readShortLE(stream)
+                    val audioFormat = readShortLE(stream).toInt() and 0xFFFF
+                    numChannels = readShortLE(stream).toInt() and 0xFFFF
                     sampleRate = readIntLE(stream)
                     readIntLE(stream)              // byte rate
                     readShortLE(stream)            // block align
-                    bitsPerSample = readShortLE(stream)
+                    bitsPerSample = readShortLE(stream).toInt() and 0xFFFF
                     // Skip remaining fmt chunk
                     if (fmtSize > 16) stream.skip((fmtSize - 16).toLong())
                 }

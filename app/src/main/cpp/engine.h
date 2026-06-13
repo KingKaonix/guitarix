@@ -65,6 +65,8 @@ public:
         void *audioData,
         int32_t numFrames) override;
 
+    void processInput(float* buffer, int32_t numFrames);
+
     // oboe::AudioStreamErrorCallback
     void onErrorAfterClose(oboe::AudioStream *oboeStream, oboe::Result error) override;
 
@@ -86,7 +88,6 @@ private:
 
     void initEffects();
     void buildSignalChain(float* buffer, int32_t numFrames, int32_t numChannels);
-    void processInput(float* buffer, int32_t numFrames);
     static constexpr int RING_BUFFER_CAPACITY = 16384; // ~85ms at 48kHz
 };
 
