@@ -69,7 +69,11 @@ public:
     void onErrorAfterClose(oboe::AudioStream *oboeStream, oboe::Result error) override;
 
 private:
-    std::shared_ptr<oboe::AudioStream> stream_;
+    std::shared_ptr<oboe::AudioStream> inputStream_;
+    std::shared_ptr<oboe::AudioStream> outputStream_;
+    std::vector<float> ringBuffer_;
+    int ringBufferWritePos_ = 0;
+    int ringBufferReadPos_ = 0;
     std::vector<std::unique_ptr<Effect>> effects_;
     std::vector<bool> enabled_;
     int currentPreset_ = 0;
@@ -82,6 +86,21 @@ private:
 
     void initEffects();
     void buildSignalChain(float* buffer, int32_t numFrames, int32_t numChannels);
+    void processInput(float* buffer, int32_t numFrames);
+    static constexpr int RING_BUFFER_CAPACITY = 16384; // ~85ms at 48kHz
+};
+
+// Separate callback class for input stream
+class InputCallback : public oboe::AudioStreamDataCallback {
+public:
+    explicit InputCallback(AudioEngine* engine) : engine_(engine) {}
+    oboe::DataCallbackResult onAudioReady(
+        oboe::AudioStream* stream, void* audioData, int32_t numFrames) override {
+        engine_->processInput(static_cast<float*>(audioData), numFrames);
+        return oboe::DataCallbackResult::Continue;
+    }
+private:
+    AudioEngine* engine_;
 };
 
 #endif

@@ -25,7 +25,8 @@ enum EffectIndex {
 };
 
 AudioEngine::AudioEngine()
-    : currentPreset_(0) {
+    : currentPreset_(0), ringBuffer_(RING_BUFFER_CAPACITY, 0.0f),
+      ringBufferWritePos_(0), ringBufferReadPos_(0) {
     effects_.resize(FX_COUNT);
     enabled_.resize(FX_COUNT, false);
     initEffects();
@@ -49,46 +50,74 @@ void AudioEngine::initEffects() {
 }
 
 bool AudioEngine::start() {
-    if (stream_) return true;
+    if (outputStream_) return true;
 
-    oboe::AudioStreamBuilder builder;
-    builder.setDirection(oboe::Direction::Input);
-    builder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
-    builder.setSharingMode(oboe::SharingMode::Exclusive);
-    builder.setFormat(oboe::AudioFormat::Float);
-    builder.setChannelCount(oboe::ChannelCount::Mono);
-    builder.setSampleRate(48000);
-    builder.setFramesPerDataCallback(256);
-    builder.setDataCallback(this);
-    builder.setErrorCallback(this);
+    oboe::AudioStreamBuilder outBuilder;
+    outBuilder.setDirection(oboe::Direction::Output);
+    outBuilder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
+    outBuilder.setSharingMode(oboe::SharingMode::Exclusive);
+    outBuilder.setFormat(oboe::AudioFormat::Float);
+    outBuilder.setChannelCount(oboe::ChannelCount::Mono);
+    outBuilder.setSampleRate(48000);
+    outBuilder.setFramesPerDataCallback(256);
+    outBuilder.setDataCallback(this);
+    outBuilder.setErrorCallback(this);
 
-    oboe::Result result = builder.openStream(stream_);
+    oboe::Result result = outBuilder.openStream(outputStream_);
     if (result != oboe::Result::OK) {
-        LOGI("Failed to open input stream: %s", oboe::convertToText(result));
-        builder.setDirection(oboe::Direction::Output);
-        result = builder.openStream(stream_);
-        if (result != oboe::Result::OK) {
-            LOGI("Failed to open output stream: %s", oboe::convertToText(result));
-            return false;
-        }
-    }
-
-    result = stream_->requestStart();
-    if (result != oboe::Result::OK) {
-        LOGI("Failed to start stream: %s", oboe::convertToText(result));
+        LOGI("Failed to open output stream: %s", oboe::convertToText(result));
         return false;
     }
 
-    LOGI("Audio stream started: %d channels, %d rate",
-         stream_->getChannelCount(), stream_->getSampleRate());
+    // Try to open input stream
+    oboe::AudioStreamBuilder inBuilder;
+    inBuilder.setDirection(oboe::Direction::Input);
+    inBuilder.setPerformanceMode(oboe::PerformanceMode::LowLatency);
+    inBuilder.setSharingMode(oboe::SharingMode::Exclusive);
+    inBuilder.setFormat(oboe::AudioFormat::Float);
+    inBuilder.setChannelCount(oboe::ChannelCount::Mono);
+    inBuilder.setSampleRate(48000);
+    inBuilder.setFramesPerDataCallback(256);
+    auto inputCb = std::make_shared<InputCallback>(this);
+    inBuilder.setDataCallback(inputCb);
+    inBuilder.setErrorCallback(this);
+
+    oboe::Result inResult = inBuilder.openStream(inputStream_);
+    if (inResult != oboe::Result::OK) {
+        LOGI("Input stream not available (tuner will not get live audio): %s",
+             oboe::convertToText(inResult));
+        inputStream_.reset();
+    } else {
+        inResult = inputStream_->requestStart();
+        if (inResult != oboe::Result::OK) {
+            LOGI("Failed to start input stream: %s", oboe::convertToText(inResult));
+            inputStream_.reset();
+        }
+    }
+
+    result = outputStream_->requestStart();
+    if (result != oboe::Result::OK) {
+        LOGI("Failed to start output stream: %s", oboe::convertToText(result));
+        outputStream_.reset();
+        return false;
+    }
+
+    LOGI("Audio engine started: output %dch %dHz, input %s",
+         outputStream_->getChannelCount(), outputStream_->getSampleRate(),
+         inputStream_ ? "active" : "unavailable");
     return true;
 }
 
 void AudioEngine::stop() {
-    if (stream_) {
-        stream_->stop();
-        stream_->close();
-        stream_.reset();
+    if (inputStream_) {
+        inputStream_->stop();
+        inputStream_->close();
+        inputStream_.reset();
+    }
+    if (outputStream_) {
+        outputStream_->stop();
+        outputStream_->close();
+        outputStream_.reset();
     }
 }
 
@@ -98,18 +127,28 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
     int32_t numChannels = audioStream->getChannelCount();
     float *buffer = static_cast<float*>(audioData);
 
-    if (audioStream->getDirection() == oboe::Direction::Output) {
-        memset(buffer, 0, numFrames * numChannels * sizeof(float));
-    }
+    // Default to silence
+    memset(buffer, 0, numFrames * numChannels * sizeof(float));
 
     std::lock_guard<std::mutex> lock(mutex_);
 
-    // Process audio through tuner for pitch detection
-    if (tuner_) {
+    // Read input audio from ring buffer (if available)
+    int samplesAvailable = 0;
+    if (ringBufferWritePos_ > ringBufferReadPos_) {
+        samplesAvailable = ringBufferWritePos_ - ringBufferReadPos_;
+        int toCopy = (samplesAvailable < numFrames) ? samplesAvailable : numFrames;
+        for (int i = 0; i < toCopy; ++i) {
+            buffer[i] = ringBuffer_[(ringBufferReadPos_ + i) % RING_BUFFER_CAPACITY];
+        }
+        ringBufferReadPos_ += toCopy;
+    }
+
+    // If we have input audio, process through tuner
+    if (samplesAvailable > 0 && tuner_) {
         tuner_->process(buffer, numFrames);
     }
 
-    // Process effects chain
+    // Process effects chain on output
     buildSignalChain(buffer, numFrames, numChannels);
 
     return oboe::DataCallbackResult::Continue;
@@ -117,6 +156,19 @@ oboe::DataCallbackResult AudioEngine::onAudioReady(
 
 void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream, oboe::Result error) {
     LOGI("Audio stream error: %s", oboe::convertToText(error));
+}
+
+void AudioEngine::processInput(float* buffer, int32_t numFrames) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (int i = 0; i < numFrames; ++i) {
+        int pos = (ringBufferWritePos_ + i) % RING_BUFFER_CAPACITY;
+        ringBuffer_[pos] = buffer[i];
+    }
+    ringBufferWritePos_ += numFrames;
+    // Prevent overflow
+    if (ringBufferWritePos_ - ringBufferReadPos_ > RING_BUFFER_CAPACITY) {
+        ringBufferReadPos_ = ringBufferWritePos_ - RING_BUFFER_CAPACITY;
+    }
 }
 
 void AudioEngine::buildSignalChain(float* buffer, int32_t numFrames, int32_t numChannels) {
