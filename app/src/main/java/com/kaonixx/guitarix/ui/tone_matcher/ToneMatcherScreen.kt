@@ -204,7 +204,7 @@ private fun SampleLoaderSection(vm: MainViewModel) {
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
-                        if (loading) "ANALYZING..." else "BROWSE WAV",
+                        if (loading) "ANALYZING..." else "BROWSE AUDIO",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp,

@@ -69,7 +69,7 @@ fun MainScreen(vm: MainViewModel) {
         bottomBar = { HardwareNavBar(vm) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            NavHost(
+            NavHost(modifier = Modifier.fillMaxSize(),
                 navController = navController,
                 startDestination = "effects"
             ) {

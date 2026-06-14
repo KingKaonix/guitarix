@@ -180,7 +180,7 @@ fun TranscribeScreen(vm: MainViewModel) {
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
-                        if (loading) "PROCESSING..." else "SELECT WAV",
+                        if (loading) "PROCESSING..." else "SELECT AUDIO",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp,
