@@ -87,7 +87,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     var metronomeEnabled by mutableStateOf(false); private set
     var metronomeBpm by mutableFloatStateOf(120f); private set
     var metronomeVolume by mutableFloatStateOf(0.5f); private set
-    var tapTempoHistory by mutableStateOf(List(0L) { 0L }); private set
+    var tapTempoHistory by mutableStateOf(emptyList<Long>()); private set
 
     // --- Looper ---
     var looperMode by mutableIntStateOf(0); private set  // 0=stopped, 1=recording, 2=playing, 3=overdub

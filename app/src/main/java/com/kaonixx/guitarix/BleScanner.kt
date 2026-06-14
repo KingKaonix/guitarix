@@ -52,7 +52,7 @@ class BleScanner(private val context: Context) {
         }
 
         scanCallback = callback
-        bluetoothLeScanner.startScan(callback)
+        bluetoothLeScanner?.startScan(callback)
 
         handler.postDelayed({
             stopScan()
