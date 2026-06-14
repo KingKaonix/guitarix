@@ -4,15 +4,105 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- G shaped guitar pick -->
+
+    <!-- Amp body - rounded rect with metallic border -->
+    <path
+        android:fillColor="#1A1A22"
+        android:pathData="M16,8 L92,8 C100,8 100,8 100,16 L100,92 C100,100 100,100 92,100 L16,100 C8,100 8,100 8,92 L8,16 C8,8 8,8 16,8 Z" />
+    <path
+        android:fillColor="#2A2A3A"
+        android:pathData="M16,10 L92,10 C98,10 98,10 98,16 L98,92 C98,98 98,98 92,98 L16,98 C10,98 10,98 10,92 L10,16 C10,10 10,10 16,10 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#3A3A4E" />
+
+    <!-- Speaker grille - horizontal lines -->
+    <path android:fillColor="#121216" android:pathData="M20,30 L88,30 L88,34 L20,34 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,36 L88,36 L88,40 L20,40 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,42 L88,42 L88,46 L20,46 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,48 L88,48 L88,52 L20,52 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,54 L88,54 L88,58 L20,58 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,60 L88,60 L88,64 L20,64 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,66 L88,66 L88,70 L20,70 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,72 L88,72 L88,76 L20,76 Z" />
+    <path android:fillColor="#121216" android:pathData="M20,78 L88,78 L88,82 L20,82 Z" />
+
+    <!-- Sound wave arcs - left side -->
+    <path
+        android:fillColor="#0022D3EE"
+        android:pathData="M14,54 Q8,42 14,30"
+        android:strokeWidth="2"
+        android:strokeColor="#22D3EE" />
+    <path
+        android:fillColor="#0022D3EE"
+        android:pathData="M10,54 Q2,38 10,22"
+        android:strokeWidth="2"
+        android:strokeColor="#22D3EE" />
+
+    <!-- Sound wave arcs - right side -->
+    <path
+        android:fillColor="#0022D3EE"
+        android:pathData="M94,54 Q100,42 94,30"
+        android:strokeWidth="2"
+        android:strokeColor="#22D3EE" />
+    <path
+        android:fillColor="#0022D3EE"
+        android:pathData="M98,54 Q106,38 98,22"
+        android:strokeWidth="2"
+        android:strokeColor="#22D3EE" />
+
+    <!-- Glowing K letter in center -->
+    <!-- K left stem -->
     <path
         android:fillColor="#22D3EE"
-        android:pathData="M40,40 L54,30 L68,40 L70,60 L54,80 L38,60 Z" />
-    <path
-        android:fillColor="#0A0A0E"
-        android:pathData="M46,48 L54,40 L62,48 L62,60 L54,70 L46,60 Z" />
-    <!-- inner G bar -->
+        android:pathData="M46,44 L46,64 L50,64 L50,44 Z" />
+    <!-- K top arm -->
     <path
         android:fillColor="#22D3EE"
-        android:pathData="M54,50 L58,54 L54,58" />
+        android:pathData="M50,48 L62,44 L62,48 L54,54 L62,60 L62,64 L50,56 Z" />
+
+    <!-- K glow aura -->
+    <path
+        android:fillColor="#00FFFFFF"
+        android:pathData="M44,42 L54,42 L64,42 L64,66 L44,66 Z"
+        android:strokeWidth="3"
+        android:strokeColor="#22D3EE"
+        android:strokeAlpha="0.3" />
+
+    <!-- Bottom LED strip -->
+    <path
+        android:fillColor="#121216"
+        android:pathData="M30,86 L78,86 L78,92 L30,92 Z" />
+    <path
+        android:fillColor="#22C55E"
+        android:pathData="M36,88 L40,88 L40,90 L36,90 Z" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M44,88 L48,88 L48,90 L44,90 Z" />
+    <path
+        android:fillColor="#FF6B6B"
+        android:pathData="M52,88 L56,88 L56,90 L52,90 Z" />
+    <path
+        android:fillColor="#A78BFA"
+        android:pathData="M60,88 L64,88 L64,90 L60,90 Z" />
+    <path
+        android:fillColor="#22D3EE"
+        android:pathData="M68,88 L72,88 L72,90 L68,90 Z" />
+
+    <!-- KRANK text at bottom -->
+    <path
+        android:fillColor="#F1F1F5"
+        android:pathData="M36,94 L43,94 L43,96 L39,96 L39,98 L42,98 L42,100 L36,100 Z" />
+    <path
+        android:fillColor="#F1F1F5"
+        android:pathData="M44,94 L50,94 L50,96 L47,96 L47,98 L50,98 L50,100 L44,100 Z" />
+    <path
+        android:fillColor="#F1F1F5"
+        android:pathData="M51,94 L57,94 L57,96 L54,96 L54,98 L57,98 L57,100 L51,100 Z" />
+    <path
+        android:fillColor="#F1F1F5"
+        android:pathData="M58,94 L64,94 L64,96 L61,96 L61,98 L64,98 L64,100 L58,100 Z" />
+    <path
+        android:fillColor="#F1F1F5"
+        android:pathData="M65,94 L71,94 L71,96 L68,96 L68,98 L71,98 L71,100 L65,100 Z" />
+
 </vector>
